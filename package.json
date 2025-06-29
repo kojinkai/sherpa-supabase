@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:serve": "supabase functions serve --env-file .env.local",
+    "dev": "supabase start && supabase functions serve --debug"
+  },
+  "devDependencies": {
+    "supabase": "^2.26.9"
+  }
+}
