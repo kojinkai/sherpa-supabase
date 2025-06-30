@@ -30,7 +30,7 @@ type IPOCalendarResponse = {
   ipoCalendar: IPOEvent[];
 };
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
   if (!config.finnHubApiKey) {
     throw new Error("FINNHUB_API_KEY environment variable is not set");
   }
@@ -41,7 +41,7 @@ Deno.serve(async (_req) => {
   api_key.apiKey = config.finnHubApiKey;
   const finnhubClient = new DefaultApi();
 
-  // Get current date for IPO calendar
+  // Get current date for IPO calendar events
   const today = new Date();
   const from = today.toISOString().split("T")[0]; // YYYY-MM-DD format
 
@@ -51,6 +51,15 @@ Deno.serve(async (_req) => {
   const to = sixMonthsFromNow.toISOString().split("T")[0]; // YYYY-MM-DD format
 
   try {
+    const supabaseClient = createClient(
+      config.supabaseUrl,
+      config.supabaseServiceKey,
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      },
+    );
     // Call IPO Calendar API using the Finnhub client with callback pattern
     const { ipoCalendar } = await new Promise<IPOCalendarResponse>(
       (resolve, reject) => {
@@ -66,11 +75,6 @@ Deno.serve(async (_req) => {
           },
         );
       },
-    );
-
-    const supabaseClient = createClient(
-      config.supabaseUrl,
-      config.supabaseServiceKey,
     );
 
     const { data, error } = await supabaseClient
