@@ -41,14 +41,11 @@ Deno.serve(async (req) => {
   api_key.apiKey = config.finnHubApiKey;
   const finnhubClient = new DefaultApi();
 
-  // Get current date for IPO calendar events
-  const today = new Date();
-  const from = today.toISOString().split("T")[0]; // YYYY-MM-DD format
-
-  // Set to date to 6 months in the future
-  const sixMonthsFromNow = new Date();
-  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-  const to = sixMonthsFromNow.toISOString().split("T")[0]; // YYYY-MM-DD format
+  // this function runs in a cron job at 1am
+  // so get the data for the previous day
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
+  const date = yesterday.toISOString().split("T")[0]; // YYYY-MM-DD format
 
   try {
     const supabaseClient = createClient(
@@ -64,8 +61,8 @@ Deno.serve(async (req) => {
     const { ipoCalendar } = await new Promise<IPOCalendarResponse>(
       (resolve, reject) => {
         finnhubClient.ipoCalendar(
-          from,
-          to,
+          date,
+          date,
           (error: Error | null, data: unknown, _response: unknown) => {
             if (error) {
               reject(error);
@@ -79,9 +76,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabaseClient
       .from("IPOEvent")
-      .upsert(ipoCalendar, {
-        onConflict: "name",
-      })
+      .upsert(ipoCalendar)
       .select("*");
 
     if (error) {
