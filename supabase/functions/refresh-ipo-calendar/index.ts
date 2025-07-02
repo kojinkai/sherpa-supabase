@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabaseClient
       .from("IPOEvent")
-      .upsert(ipoCalendar)
+      .insert(ipoCalendar)
       .select("*");
 
     if (error) {
