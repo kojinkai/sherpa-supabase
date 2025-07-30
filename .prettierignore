@@ -1,0 +1,6 @@
+# Ignore artifacts:
+build
+coverage
+
+supabase/.branches
+supabase/.temp
